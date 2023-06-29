@@ -3,6 +3,7 @@ package com.yueye.myrpc.server;
 import com.yueye.myrpc.common.RPCRequest;
 import com.yueye.myrpc.common.RPCResponse;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,6 +13,7 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 
 @AllArgsConstructor
+@Slf4j
 public class WorkThread implements Runnable{
     private Socket socket;
     private ServiceProvider serviceProvider;
@@ -31,8 +33,7 @@ public class WorkThread implements Runnable{
             oos.writeObject(response);
             oos.flush();
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("从IO中读取数据出错！");
+            log.error("从IO中读取数据出错！" + e.getMessage());
         }
     }
 
@@ -50,8 +51,7 @@ public class WorkThread implements Runnable{
             return RPCResponse.success(invoke);
 
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            System.out.println("服务执行错误！");
+            log.error("服务执行错误！" + e.getMessage());
             return RPCResponse.fall();
         }
     }

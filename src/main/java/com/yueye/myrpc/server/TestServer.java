@@ -14,7 +14,7 @@ public class TestServer {
         serviceProvider.provideServiceInterface(blogService);
 
         // 开启服务
-        RPCServer rpcServer = new SimpleRPCServer(serviceProvider);
+        RPCServer rpcServer = new ThreadPoolRPCServer(serviceProvider);
         rpcServer.start(8899);
     }
 }

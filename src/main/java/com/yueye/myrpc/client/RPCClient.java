@@ -6,7 +6,7 @@ import com.yueye.myrpc.service.BlogService;
 import com.yueye.myrpc.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j(topic = "c.RPCClient")
+@Slf4j
 public class RPCClient {
     public static void main(String[] args) {
         ClientProxy clientProxy = new ClientProxy("127.0.0.1", 8899);
@@ -14,7 +14,7 @@ public class RPCClient {
 
         // 服务的方法1
         User userById = userService.getUserById(10);
-        log.error("从服务端得到的 user 为：" + userById);
+        log.debug("从服务端得到的 user 为：" + userById);
 
         // 服务的方法2
         User user = User.builder().id(100).username("张三").sex("嬲").build();

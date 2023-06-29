@@ -4,7 +4,7 @@ import com.yueye.myrpc.common.Blog;
 import com.yueye.myrpc.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j(topic = "c.BlogServiceImpl")
+@Slf4j
 public class BlogServiceImpl implements BlogService {
     @Override
     public Blog getBlogById(Integer id) {

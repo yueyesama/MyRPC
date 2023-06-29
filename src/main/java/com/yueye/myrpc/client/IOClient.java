@@ -27,6 +27,7 @@ public class IOClient {
             return response;
 
         } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
             System.out.println("发送出现错误！");
             return null;
         }

@@ -18,7 +18,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<RPCResponse>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("服务端 netty 出错！" + cause.getMessage());
+        log.error("客户端 netty 出错！" + cause.getMessage());
         ctx.close();
     }
 }

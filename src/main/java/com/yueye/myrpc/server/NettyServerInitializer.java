@@ -1,5 +1,9 @@
 package com.yueye.myrpc.server;
 
+import com.yueye.myrpc.codec.JsonSerializer;
+import com.yueye.myrpc.codec.MyDecode;
+import com.yueye.myrpc.codec.MyEncode;
+import com.yueye.myrpc.codec.ObjectSerializer;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -28,13 +32,17 @@ public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new LengthFieldPrepender(4));
 
         // 这里使用的还是 Java 序列化方式，netty 自带的解码编码支持传输这种结构
-        pipeline.addLast(new ObjectEncoder());
+        /*pipeline.addLast(new ObjectEncoder());
         pipeline.addLast(new ObjectDecoder(new ClassResolver() {
             @Override
             public Class<?> resolve(String className) throws ClassNotFoundException {
                 return Class.forName(className);
             }
-        }));
+        }));*/
+
+        // 使用自定义的编解码器
+        pipeline.addLast(new MyDecode());
+        pipeline.addLast(new MyEncode(new JsonSerializer()));
 
         pipeline.addLast(new NettyRPCServerHandler(serviceProvider));
     }

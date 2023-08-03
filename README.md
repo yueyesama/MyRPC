@@ -35,7 +35,7 @@
   - 新增 工作任务类 WorkThread，负责解析从客户端得到的 request 请求，执行服务方法，返回给客户端
 - 客户端中添加 BlogService 方法的测试用例
 - 缺点
-  - 传统的 BIO 与线程池网络传输性能较低
+  1. 传统的 BIO 与线程池网络传输性能较低
 
 
 
@@ -57,3 +57,37 @@
   - connect() 建立连接、sync() 同步阻塞至连接成功为止
   - 建立连接成功后，获取对应的通道，**写入 request**<u>（request 的创建和 netty 客户端的创建都是基于动态代理）</u>
   - **获取 response**
+- 缺点
+  1. 使用 Java 自带序列化方式（Java 序列化写入不仅是完整的类名，也包含整个类的定义，包含所有被引用的类），不够通用，不够高效
+
+
+
+## Version4
+
+- 自定义传输格式与编解码方式，支持 Java 原生序列化与 json 序列化
+
+- 自定义序列化器
+
+  - 创建 Serializer 接口
+    - 提供 serialize 和 deserialize 方法，前者把对象转成字节数组，后者把字节数组转成对象（deserialize 方法需要额外提供 <u>对象类型</u> 参数）
+    - 提供 getType 和 getSerializerByCode 方法，方便在编码时获取序列化类型，在解码时找到对应的序列化器执行反序列化
+  - 定义原生序列化器 ObjectSerializer 实现 Serializer 接口
+    - 通过 ByteArrayOutputStream 和 ObjectOutputStream 实现 序列化
+    - 通过 ByteArrayInputStream 和 ObjectInputStream 实现 反序列化
+  - 定义 json 序列化器 JsonSerializer 实现 Serializer 接口
+    - 通过 JSONObject.toJSONBytes() 实现序列化
+    - 通过 JSON.parseObject() 实现反序列化，需要提供对应的 .class 对象
+
+- 自定义编解码器
+
+  - 格式
+
+  | 消息类型 2Byte | 序列化方式 2Byte | 消息长度 4Byte | 序列化字节数组 ？byte |
+  - MyEncode 类继承 MessageToByteEncoder 实现 encode 方法，定义编码逻辑
+  - MyDecode 类继承 ByteToMessageDecoder 实现 decode 方法，定义解码逻辑
+
+  - NettyInitializer 中替换成自定义的编解码器
+
+- 缺点
+
+  1. 服务端与客户端通信的 host 与 port 在代码里写死了，扩展性不强

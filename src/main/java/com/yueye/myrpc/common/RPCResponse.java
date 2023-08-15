@@ -1,5 +1,6 @@
 package com.yueye.myrpc.common;
 
+import com.yueye.myrpc.codec.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class RPCResponse implements Serializable {
     private Class<?> dataType;
 
     public static RPCResponse success(Object data) {
-        return RPCResponse.builder().code(200).data(data).build();
+        return RPCResponse.builder().code(200).data(data).dataType(data.getClass()).build();
     }
 
     public static RPCResponse fall() {

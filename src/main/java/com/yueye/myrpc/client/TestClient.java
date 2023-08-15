@@ -11,9 +11,9 @@ public class TestClient {
 
     public static void main(String[] args) {
         // 创建一个使用 netty 传输的客户端
-        NettyRPCClient nettyRPCClient = new NettyRPCClient("127.0.0.1", 8899);
+        RPCClient rpcClient = new NettyRPCClient();
         // 创建代理对象
-        RPCClientProxy rpcClientProxy = new RPCClientProxy(nettyRPCClient);
+        RPCClientProxy rpcClientProxy = new RPCClientProxy(rpcClient);
 
         // 调用代理对象方法
         UserService userService = rpcClientProxy.getProxy(UserService.class);
@@ -27,7 +27,6 @@ public class TestClient {
         BlogService blogService = rpcClientProxy.getProxy(BlogService.class);
         Blog blogById = blogService.getBlogById(12);
         log.info("从服务端得到的 blog 为：" + blogById);
-
 
     }
 }

@@ -2,6 +2,8 @@ package com.yueye.myrpc.client;
 
 import com.yueye.myrpc.common.RPCRequest;
 import com.yueye.myrpc.common.RPCResponse;
+import com.yueye.myrpc.register.ServiceRegister;
+import com.yueye.myrpc.register.ZkServiceRegister;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -11,16 +13,19 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
+
 @Slf4j
 public class NettyRPCClient implements RPCClient {
     private static final Bootstrap bootstrap;
     private static final EventLoopGroup eventLoopGroup;
     private String host;
     private int port;
+    private ServiceRegister serviceRegister;
 
-    public NettyRPCClient(String host, int port) {
-        this.host = host;
-        this.port = port;
+    public NettyRPCClient() {
+        // 初始化注册中心，建立连接
+        this.serviceRegister = new ZkServiceRegister();
     }
 
     // netty 客户端初始化
@@ -37,6 +42,12 @@ public class NettyRPCClient implements RPCClient {
     // 发送 request 后，会立刻返回，而不是想要的 response
     @Override
     public RPCResponse sendRequest(RPCRequest request) {
+
+        // 从注册中心获取host，port
+        InetSocketAddress address = serviceRegister.serviceDiscovery(request.getInterfaceName());
+        host = address.getHostName();
+        port = address.getPort();
+
         try {
             ChannelFuture channelFuture = bootstrap.connect(host, port) // 指定要连接的服务器和端口
                     .sync(); // connect 是异步的，sync 方法等待建立连接完毕

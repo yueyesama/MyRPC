@@ -1,5 +1,9 @@
 package com.yueye.myrpc.register;
 
+import com.yueye.myrpc.loadbalance.LoadBalance;
+import com.yueye.myrpc.loadbalance.RandomLoadBalance;
+import com.yueye.myrpc.loadbalance.RoundLoadBalance;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -8,12 +12,15 @@ import org.apache.zookeeper.CreateMode;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-
+@Slf4j
 public class ZkServiceRegister implements ServiceRegister {
     // curator 提供的zookeeper 客户端
     private CuratorFramework client;
     // zookeeper根路径节点
     private static final String ROOT_PATH = "MyRPC";
+
+    // 初始化负载均衡器，这里使用随机
+    private LoadBalance loadBalance = new RoundLoadBalance();
 
     // 这里负责zookeeper客户端的初始化，并与zookeeper服务端建立连接
     public ZkServiceRegister() {
@@ -26,7 +33,7 @@ public class ZkServiceRegister implements ServiceRegister {
         this.client = CuratorFrameworkFactory.builder().connectString("127.0.0.1:2181")
                 .sessionTimeoutMs(40000).retryPolicy(policy).namespace(ROOT_PATH).build();
         this.client.start();
-        System.out.println("zookeeper 连接成功");
+        log.debug("Zookeeper 连接成功");
     }
 
     @Override
@@ -41,7 +48,7 @@ public class ZkServiceRegister implements ServiceRegister {
             // 临时节点，服务器下线就删除节点
             client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
         } catch (Exception e) {
-            System.out.println("此服务已存在");
+            log.error("此服务已存在");
         }
     }
 
@@ -49,10 +56,12 @@ public class ZkServiceRegister implements ServiceRegister {
     @Override
     public InetSocketAddress serviceDiscovery(String serviceName) {
         try {
-            List<String> strings = client.getChildren().forPath("/" + serviceName);
+            List<String> addressList = client.getChildren().forPath("/" + serviceName);
             // 这里默认用的第一个，后面加负载均衡
-            String string = strings.get(0);
-            return parseAddress(string);
+            /*String string = strings.get(0);*/
+            // 负载均衡
+            String address = loadBalance.balance(addressList);
+            return parseAddress(address);
         } catch (Exception e) {
             e.printStackTrace();
         }
